@@ -1,44 +1,36 @@
---== LOAD ORION LIB ==
-local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-
---== SERVICES ==
+--== SERVICE SETUP ==--
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
-local LocalPlayer = Players.LocalPlayer
 
---== REMOTES ==
+local LocalPlayer = Players.LocalPlayer
 local DropRemote = ReplicatedStorage:WaitForChild("WalletRemotes"):WaitForChild("DropCash")
 local ToolShopEvent = ReplicatedStorage:WaitForChild("ToolShopEvent")
 
---== WINDOW SETUP ==
+--== ORION GUI SETUP ==--
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+
 local Window = OrionLib:MakeWindow({
     Name = "Near.cc",
     HidePremium = false,
     SaveConfig = true,
-    ConfigFolder = "NearccSettings"
+    ConfigFolder = "NearConfig"
 })
 
---== MAIN TAB ==
+--== MAIN TAB ==--
 local MainTab = Window:MakeTab({
     Name = "Main",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
 
--- Auto Claim Ikan Toggle
 local autoClaim = false
 MainTab:AddToggle({
     Name = "Auto Claim Ikan",
     Default = false,
-    Callback = function(Value)
-        autoClaim = Value
+    Callback = function(state)
+        autoClaim = state
         if autoClaim then
-            OrionLib:MakeNotification({
-                Name = "Auto Claim Aktif",
-                Content = "Memulai auto claim ikan...",
-                Time = 4
-            })
             coroutine.wrap(function()
                 while autoClaim do
                     task.wait(0.5)
@@ -52,67 +44,45 @@ MainTab:AddToggle({
     end
 })
 
--- Auto Drop Uang
-local jumlahDrop = 0
-MainTab:AddTextbox({
-    Name = "Jumlah Uang Drop",
-    Default = "100",
-    TextDisappear = false,
-    Callback = function(Value)
-        jumlahDrop = tonumber(Value) or 0
-    end
-})
-
-local dropRunning = false
-MainTab:AddToggle({
-    Name = "Auto Drop",
-    Default = false,
-    Callback = function(Value)
-        dropRunning = Value
-        if dropRunning then
-            coroutine.wrap(function()
-                while dropRunning do
-                    if jumlahDrop > 0 then
-                        DropRemote:FireServer(jumlahDrop)
-                    end
-                    task.wait(0.5)
-                end
-            end)()
-        end
-    end
-})
-
--- Rejoin Button
 MainTab:AddButton({
-    Name = "Rejoin Server",
+    Name = "Rejoin",
     Callback = function()
         TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
     end
 })
 
---== MONEY TAB ==
+--== MONEY TAB ==--
 local MoneyTab = Window:MakeTab({
     Name = "Money",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
 
--- Exploit Uang
-local jumlahExploit = 0
+local jumlahUang = "0"
+
 MoneyTab:AddTextbox({
-    Name = "Jumlah Uang (Exploit)",
-    Default = "1000000",
+    Name = "Jumlah Uang",
+    Default = "100000",
     TextDisappear = false,
-    Callback = function(Value)
-        jumlahExploit = tonumber(Value) or 0
+    Callback = function(value)
+        jumlahUang = value
     end
 })
 
 MoneyTab:AddButton({
     Name = "Exploit Uang",
     Callback = function()
-        if jumlahExploit ~= 0 then
-            ToolShopEvent:FireServer("Purchase", "Wallet", -math.abs(jumlahExploit))
+        local jumlah = tonumber(jumlahUang)
+        if jumlah then
+            ToolShopEvent:FireServer("Purchase", "Wallet", -math.abs(jumlah))
         end
     end
+})
+
+--== NOTIFIKASI ==--
+OrionLib:MakeNotification({
+    Name = "Near.cc",
+    Content = "GUI berhasil dimuat!",
+    Image = "rbxassetid://4483345998",
+    Time = 4
 })
